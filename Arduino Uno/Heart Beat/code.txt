@@ -1,0 +1,36 @@
+#define HEARTBEAT_PIN A0
+
+int threshold = 550; // Adjust this as needed
+bool beatDetected = false;
+
+unsigned long lastBeatTime = 0;
+int bpm = 0;
+
+void setup() {
+  Serial.begin(9600);
+  Serial.println("Heartbeat sensor started...");
+}
+
+void loop() {
+  int value = analogRead(HEARTBEAT_PIN);
+  if (value > threshold && !beatDetected) {
+    beatDetected = true;
+    unsigned long currentTime = millis();
+    unsigned long timeDiff = currentTime - lastBeatTime;
+
+    if (timeDiff > 300) { // Ignore noise & debounce
+      bpm = 60000 / timeDiff;
+      lastBeatTime = currentTime;
+
+      Serial.print("BPM: ");
+      Serial.println(bpm);
+    }
+  }
+
+  // Reset detection when value drops
+  if (value < threshold) {
+    beatDetected = false;
+  }
+
+  delay(1000); // Small delay for sampling
+}
